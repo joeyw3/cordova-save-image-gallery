@@ -46,7 +46,6 @@ public class SaveImageGallery extends CordovaPlugin {
     public static final String REMOVE_IMAGE_ACTION = "removeImageFromLibrary";
 
     public static final int WRITE_PERM_REQUEST_CODE = 1;
-    private final String WRITE_EXTERNAL_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
     private JSONArray _args;
     private CallbackContext _callback;
@@ -61,12 +60,18 @@ public class SaveImageGallery extends CordovaPlugin {
             this._args = args;
             this._callback = callbackContext;
 
-            if (PermissionHelper.hasPermission(this, WRITE_EXTERNAL_STORAGE)) {
+            String writeImagePermission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                writeImagePermission = Manifest.permission.READ_MEDIA_VIDEO;
+            }
+
+            if (PermissionHelper.hasPermission(this, writeImagePermission)) {
                 Log.d("SaveImageGallery", "Permissions already granted, or Android version is lower than 6");
                 saveBase64Image(this._args, this._callback);
             } else {
-                Log.d("SaveImageGallery", "Requesting permissions for WRITE_EXTERNAL_STORAGE");
-                PermissionHelper.requestPermission(this, WRITE_PERM_REQUEST_CODE, WRITE_EXTERNAL_STORAGE);
+                Log.d("SaveImageGallery", "Requesting permissions for writeImagePermission");
+                PermissionHelper.requestPermission(this, WRITE_PERM_REQUEST_CODE, writeImagePermission);
             }
         }
 
@@ -240,7 +245,7 @@ public class SaveImageGallery extends CordovaPlugin {
 
 		switch (requestCode) {
 		case WRITE_PERM_REQUEST_CODE:
-			Log.d("SaveImageGallery", "User granted the permission for WRITE_EXTERNAL_STORAGE");
+			Log.d("SaveImageGallery", "User granted the permission for writeImagePermission");
             saveBase64Image(this._args, this._callback);
 			break;
 		}
